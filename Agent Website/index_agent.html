@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZPI - Agent Workspace</title>
+    
+    <script type="text/javascript" src="https://s3bucket/connect-streams-min.js"></script>
+
+    <style>
+        /* --- GLOBAL ALBERS AG STYLES --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #123456;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 { margin: 0; font-size: 1.5rem; }
+        header span { font-size: 0.9rem; opacity: 0.8; }
+
+        /* --- MAIN CONTENT LAYOUT --- */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        /* Container for the CCP to give it the "Widget" look */
+        .ccp-wrapper {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-top: 5px solid #123456;
+        }
+
+        /* Ensure the container div respects the size */
+        #container-div {
+            width: 400px; 
+            height: 800px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: #777;
+            background-color: #eef2f5;
+        }
+    </style>
+</head>
+
+<body onload="init()">
+
+    <header>
+        <h1>ZPI Agent Portal</h1>
+        <span>Logged in</span>
+    </header>
+
+    
+
+    <main>
+        <div class="ccp-wrapper">
+            <div id="container-div"></div>
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2025 ZPI. Internal Use Only.
+    </footer>
+
+    <script type="text/javascript">
+      var containerDiv = document.getElementById("container-div");
+      
+      // I updated this to the Albers AG URL from previous context. 
+      // If you need the generic one, change it back to: "https://my-instance-domain.awsapps.com/connect/ccp-v2/"
+      var instanceURL = "https://awsconnectdomain.my.connect.aws/ccp-v2/";
+
+      // initialize the streams api
+      function init() {
+        // initialize the ccp
+        connect.core.initCCP(containerDiv, {
+          ccpUrl: instanceURL,            // REQUIRED
+          loginPopup: true,               // optional, defaults to `true`
+          loginPopupAutoClose: true,      // optional, defaults to `false`
+          loginOptions: {                 // optional, if provided opens login in new window
+            autoClose: true,              // optional, defaults to `false`
+            height: 600,                  // optional, defaults to 578
+            width: 400,                   // optional, defaults to 433
+            top: 0,                       // optional, defaults to 0
+            left: 0,                      // optional, defaults to 0
+            disableAuthPopupAfterLogout: false // optional, determines if CCP should trigger the login popup after being logged out. Defaults to false.
+          },
+          region: 'eu-central-1', // REQUIRED for `CHAT`, optional otherwise
+          softphone: {
+            // optional, defaults below apply if not provided
+            allowFramedSoftphone: true, // optional, defaults to false
+            disableRingtone: false, // optional, defaults to false
+            // ringtoneUrl: '[your-ringtone-filepath].mp3', // Commented out to prevent 404 errors
+            disableEchoCancellation: false, // optional, defaults to false
+            allowFramedVideoCall: true, // optional, default to false
+            allowFramedScreenSharing: true, // optional, default to false
+            allowFramedScreenSharingPopUp: true, // optional, default to false
+            VDIPlatform: null, // optional, provide with 'CITRIX' if using Citrix VDI, or use enum VDIPlatformType
+            allowEarlyGum: true, //optional, default to true
+          },
+          task: {
+            disableRingtone: false, // optional, defaults to false
+            // ringtoneUrl: "[your-ringtone-filepath].mp3" // Commented out to prevent 404 errors
+          },
+          pageOptions: { //optional
+            enableAudioDeviceSettings: false, //optional, defaults to 'false'
+            enableVideoDeviceSettings: false, //optional, defaults to 'false'
+            enablePhoneTypeSettings: true, //optional, defaults to 'true' 
+            showInactivityModal: false, // optional, determines if the inactivity modal should render in the CCP iframe. Defaults to true.
+          },
+          shouldAddNamespaceToLogs: false, //optional, defaults to 'false'
+          ccpAckTimeout: 5000, //optional, defaults to 3000 (ms)
+          ccpSynTimeout: 3000, //optional, defaults to 1000 (ms)
+          ccpLoadTimeout: 10000, //optional, defaults to 5000 (ms)
+          logConfig: { //optional logging configuration
+            logLevel: connect.LogLevel.INFO, //optional, defaults to LogLevel.INFO
+            echoLevel: connect.LogLevel.WARN, //optional, defaults to LogLevel.WARN
+          },
+          // plugins: [plugin1, plugin2], // COMMENTED OUT: variables 'plugin1' and 'plugin2' are undefined and will break the page.
+        });
+      }
+    </script>
+  </body>
+</html>

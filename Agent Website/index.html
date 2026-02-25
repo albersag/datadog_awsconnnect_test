@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZPI- Agent Workspace</title>
+    
+    <script type="text/javascript" src="https://s3bucket/connect-streams-min.js"></script>
+
+    <style>
+        /* --- GLOBAL ALBERS AG STYLES --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #123456;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 { margin: 0; font-size: 1.5rem; }
+        header span { font-size: 0.9rem; opacity: 0.8; }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 20px;
+        }
+
+        /* --- AGENT WORKSPACE LAYOUT --- */
+        .workspace-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+            justify-content: center;
+            max-width: 98%; /* Wide layout for agent tools */
+            margin: 0 auto;
+        }
+
+        /* Styles for the Connect Containers */
+        #ccp-container, #wisdom-container, #customviews-container {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* --- TABLE STYLES (From your request) --- */
+        .customer-data-wrapper {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            background: white;
+            height: 600px; /* Match height of other widgets */
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #123456; /* Branded Header */
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body onload="init()">
+
+    <header>
+        <h1>ZPI Agent Portal</h1>
+        <span>Logged in</span>
+    </header>
+
+    
+
+    <main class="workspace-container">
+        
+        <div id="ccp-container"></div>
+
+        <div id="wisdom-container"></div>
+
+        <div id="customviews-container"></div>
+
+        <div class="customer-data-wrapper">
+            <h3>Contact Context</h3>
+            <table id="attributes" class="fixed">
+                <col width="40%" />
+                <col width="60%" />
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>UserName</td>
+                        <td>--</td>
+                    </tr>
+                    <tr>
+                        <td>PhoneNumber</td>
+                        <td>--</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <footer>
+        &copy; 2025 ZPI. Internal Use Only.
+    </footer>
+
+    <script type="text/javascript">
+      function init() {
+        const connectUrl = "https://awsconnectdomain.my.connect.aws";
+        
+        // 1. Initialize CCP
+        connect.agentApp.initApp(
+            "ccp", 
+            "ccp-container", 
+            connectUrl + "/ccp-v2/",
+            { style: "width:320px; height:600px;" } // Adjusted width slightly to fit
+        );
+
+        // 2. Initialize Wisdom
+        connect.agentApp.initApp(
+            "wisdom", 
+            "wisdom-container", 
+            connectUrl + "/wisdom-v2/",
+            { style: "width:320px; height:600px;" }
+        );
+    
+        // 3. Handle Contact Events & Table Population
+        connect.contact((contact) => {
+            var contactAttr = contact.getAttributes();
+            
+            try {
+                let tbody = document.getElementById("attributes").getElementsByTagName('tbody')[0];
+                
+                // Iterate attributes and populate the table
+                Object.values(contactAttr).forEach((attribute) => {
+                    const rows = tbody.querySelectorAll('tr');
+
+                    for (let i = 0; i < rows.length; i++) {
+                        const cellName = rows[i].querySelector('td:nth-child(1)');
+                        
+                        if(cellName.textContent == 'PhoneNumber' && attribute.name == 'PhoneNumber') {
+                            const cell = rows[i].querySelector('td:nth-child(2)');
+                            cell.textContent = attribute.value;
+                        }
+                        else if(cellName.textContent == 'UserName' && attribute.name == 'UserName') {
+                            const cell = rows[i].querySelector('td:nth-child(2)');
+                            cell.textContent = attribute.value;
+                        }
+                        // Note: Removed generic else block to prevent overwriting specific rows with unrelated data
+                    }
+                });
+            } catch (e) {
+                console.error("CDEBUG >> Error updating table:", e);
+            }
+        });
+
+        // 4. Handle Custom Views Lifecycle
+        connect.contact((contact) => {
+            contact.onConnected((contact) => {
+                connect.agentApp.initApp(
+                  "customviews",
+                  "customviews-container",
+                  connectUrl + "/stargate/app",
+                  { 
+                    style: "width:320px; height:600px;",
+                    customViewsParams: {
+                      contact: contact,
+                      contactFlowId: "124f5d80-a0ee-466e-a01c-xxxx",
+                      iframeSuffix: `${contact.getContactId()}-124f5d80-a0ee-466e-a01c-xxx`,
+                      disableAutoDestroy: false,
+                    },
+                  }
+              );
+            });
+        });
+      }
+    </script>
+</body>
+</html>
